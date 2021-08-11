@@ -1,0 +1,261 @@
+#include<windows.h>
+#include<GL/glut.h>
+#include<iostream>
+#include<math.h>
+#include<ctime>
+#include<stdio.h>
+#include<string.h>
+
+using namespace std;
+#define PI 3.14159265
+float val = PI / 180;
+
+GLint anglesec;
+GLint anglemin;
+GLint anglehour;
+GLint hour;
+GLint minute;
+GLint sec;
+int day; 
+int month;
+int year;
+float clockVol = 100.0f;
+float clockR = 90.0f;
+char stack[10] = { '0','0','/','0','0','/','0','0','0','0' };
+
+void date()
+{
+	struct tm newtime;
+	time_t now = time(0);
+	localtime_s(&newtime, &now);
+	int day = newtime.tm_mday;
+	int month = 1 + newtime.tm_mon;
+	int year = 1900 + newtime.tm_year;
+
+	int i = 9;
+	while (year != 0)
+	{
+		stack[i] = (char)((year % 10) + '0');
+		year = year / 10;
+		i--;
+	}
+	i = i - 1;
+	while (month != 0)
+	{
+		stack[i] = (char)((month % 10) + '0');
+		month = month / 10;
+		i--;
+	}
+	i = i - 2;
+	while (day != 0)
+	{
+		stack[i] = (char)((day % 10) + '0');
+		day = day / 10;
+		i--;
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+//for drawing line using pythagorous theorem
+void drawline(GLfloat il, GLfloat fl, GLint angle)
+{
+	GLfloat s = sin(angle * val);
+	GLfloat c = cos(angle * val);
+	glVertex2f(clockR * il * c, clockR * il * s);
+	glVertex2f(clockR * fl * c, clockR * fl * s);
+
+}
+
+void TimerFunction(int value)
+{
+
+	struct tm newtime;
+	time_t now = time(0);
+	localtime_s(&newtime, &now);
+	hour = abs(newtime.tm_hour % 12);
+	minute = newtime.tm_min;
+	sec = newtime.tm_sec;
+
+
+	if (hour == 12 && minute == 00)
+	{
+
+		PlaySound(TEXT("C:\\tongue-clap (1)"), NULL, SND_SYNC);
+	}
+
+	anglesec = (float)((sec * -6) + 90);
+	anglemin = (float)((minute * -6) + 90);
+	GLfloat hourangle = (float)((hour * -30) + 90);
+	anglehour = hourangle + ((minute / 15) * -6);
+
+	glutPostRedisplay();
+	glutTimerFunc(33, TimerFunction, 1);
+
+}
+
+void linedrawvertex(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
+{
+	glLineWidth(3.0);
+	glBegin(GL_LINES);
+	glVertex2f(clockR * x1, clockR * y1);
+	glVertex2f(clockR * x2, clockR * y2);
+	glEnd();
+}
+
+void placingchar(char strings[])
+{
+	for (int i = 0; i < strlen(strings); i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, strings[i]);
+	glutSwapBuffers();
+}
+
+void clockimagedraw()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_POINT_SMOOTH);
+
+	for (int i = 0; i < 60; i++)
+	{
+		if ((i % 5) == 0)
+		{
+			glLineWidth(4.0);
+			glColor3f(1.0, 1.0, 0.0);
+			glBegin(GL_LINES);
+			drawline(0.7, 0.8, i * 6);
+			glEnd();
+		}
+		else
+		{
+			glLineWidth(2.0);
+			glColor3f(1.0, 1.0, 1.0);
+			glBegin(GL_LINES);
+			drawline(0.75, 0.8, i * 6);
+			glEnd();
+		}
+
+	}
+
+	glColor3f(0.5, 0.4, 0.9);
+	glRasterPos2f(clockR * -0.4, clockR * -0.2);
+	char msg1[] = "UBDT CODERS 2018-22";
+	for (int i = 0; i < strlen(msg1); i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, msg1[i]);
+
+
+	glRasterPos2f(clockR * -0.17, clockR * -0.4);
+	for (int i = 0; i < strlen(stack); i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, stack[i]);
+
+
+
+
+
+	glColor3f(0.9, 0.9, 1.0);
+	linedrawvertex(0.05, 0.55, 0.05, 0.65);
+	linedrawvertex(0.0, 0.55, 0.0, 0.65);
+	linedrawvertex(-0.05, 0.55, -0.1, 0.65);
+	linedrawvertex(-0.1, 0.55, -0.05, 0.65);
+
+	linedrawvertex(0.55, 0.05, 0.55, -0.05);
+	linedrawvertex(0.6, 0.05, 0.6, -0.05);
+	linedrawvertex(0.65, 0.05, 0.65, -0.05);
+
+	linedrawvertex(0.05, -0.55, 0.05, -0.65);
+	linedrawvertex(0.0, -0.55, -0.05, -0.65);
+	linedrawvertex(-0.05, -0.65, -0.1, -0.55);
+
+	linedrawvertex(-0.65, -0.05, -0.65, 0.05);
+	linedrawvertex(-0.6, 0.05, -0.55, -0.05);
+	linedrawvertex(-0.6, -0.05, -0.55, 0.05);
+
+	glColor3f(0.0, 0.0, 1.0);
+	glLineWidth(10.0);
+	glBegin(GL_LINES);
+	drawline(0.0, 0.3, anglehour);
+	glEnd();
+
+	glColor3f(1.0, 0.0, 1.0);
+	glLineWidth(7.0);
+	glBegin(GL_LINES);
+	drawline(0.0, 0.7, anglemin);
+	glEnd();
+
+	glColor3f(1.0, 1.0, 1.0);
+	glLineWidth(1.0);
+	glBegin(GL_LINES);
+	drawline(0.0, 0.8, anglesec);
+	glEnd();
+
+	glColor3f(0.9, 0.9, 1.0);
+	glPointSize(20.0);
+	glBegin(GL_POINTS);
+	glVertex2f(0.0, 0.0);
+	glEnd();
+
+	for (int i = 0; i < 360; i++)
+	{
+		glPointSize(20.0);
+		glBegin(GL_POINTS);
+		drawline(0.0, 0.9, i);
+		glEnd();
+	}
+
+	glFlush();
+}
+
+void ChangeSize(GLsizei w, GLsizei h) {
+	GLfloat aspectRatio;
+
+	if (h == 0)
+		h = 1;
+
+
+	glViewport(0, 0, w, h);
+
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+
+	aspectRatio = (GLfloat)w / (GLfloat)h;
+	if (w <= h)
+		glOrtho(-clockVol, clockVol, -clockVol / aspectRatio, clockVol / aspectRatio, 1.0, -1.0);
+	else
+		glOrtho(-clockVol * aspectRatio, clockVol * aspectRatio, -clockVol, clockVol, 1.0, -1.0);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+void init()
+{
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitWindowPosition(430, 50);
+	glutInitWindowSize(700, 700);
+	glutCreateWindow("bresemans line drawing technique");
+	glClearColor(0.0, 0.0, 0.0, 0);
+	glColor3f(1.0, 1.0, 0.0);
+	glMatrixMode(GL_PROJECTION);
+}
+
+int main(int argc, char** argv)
+{
+	glutInit(&argc, argv);
+	init();
+	date();
+	glutDisplayFunc(clockimagedraw);
+	glutReshapeFunc(ChangeSize);
+	glutTimerFunc(1000, TimerFunction, 1);
+	glutMainLoop();
+	return 0;
+}
